@@ -1,41 +1,70 @@
-
 package com.zedny.identity.user;
 
+
 import com.zedny.identity.profile.Profile;
-import com.zedny.identity.assignment.UserRoleAssignment;
-
+import com.zedny.identity.profile.LecturerProfile;
+import com.zedny.identity.profile.StudentProfile;
+import com.zedny.identity.user.entity.UserRole;
 import jakarta.persistence.*;
+import lombok.*;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AccessLevel;
-
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_users_email",
+                        columnNames = "email"
+                ),
+                @UniqueConstraint(
+                        name = "uk_users_phone",
+                        columnNames = "phone"
+                )
+        }
+)
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 254)
+    @Column(name = "first_name", nullable = false, length = 100)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false, length = 100)
+    private String lastName;
+
+    @Column(nullable = false, length = 255)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private boolean enabled = true;
+    @Column(length = 20)
+    private String phone;
 
-    // User Profile
+    @Column(nullable = false)
+    private boolean isActive = true;
+
+    @Column(nullable = false)
+    private boolean isEmailVerified = false;
+
+    @Column(nullable = false)
+    private boolean isPhoneVerified = false;
+
+    private LocalDateTime lastLoginAt;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     @OneToOne(
             mappedBy = "user",
@@ -45,42 +74,27 @@ public class User {
     )
     private Profile profile;
 
-    // Role Assignments
-
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
+            orphanRemoval = true
     )
-    private Set<UserRoleAssignment> roleAssignments =
-            new HashSet<>();
+    private List<UserRole> userRoles = new ArrayList<>();
 
-    // Timestamps
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private StudentProfile studentProfile;
 
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
-
-    private Instant updatedAt;
-
-    // Helper Method
-
-    public void setProfile(Profile profile) {
-        this.profile = profile;
-
-        if (profile != null) {
-            profile.setUser(this);
-        }
-    }
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private LecturerProfile lecturerProfile;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
+        createdAt = LocalDateTime.now();
         updatedAt = createdAt;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        updatedAt = LocalDateTime.now();
     }
 }

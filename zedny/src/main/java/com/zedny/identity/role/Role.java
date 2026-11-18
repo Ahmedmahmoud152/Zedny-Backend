@@ -1,44 +1,69 @@
 package com.zedny.identity.role;
 
-import com.zedny.identity.assignment.UserRoleAssignment;
-import com.zedny.identity.permission.Permission;
+import com.zedny.identity.permission.RolePermission;
+import com.zedny.identity.user.entity.UserRole;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "roles")
+@Table(
+        name = "roles",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_roles_name",
+                        columnNames = "name"
+                )
+        }
+)
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(length = 255)
+    @Column(length = 500)
     private String description;
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
-    private Set<UserRoleAssignment> assignments = new HashSet<>();
+    @Column(nullable = false)
+    private boolean isSystemRole = false;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "role_permissions",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id"),
-            uniqueConstraints = @UniqueConstraint(
-                    columnNames = {"role_id", "permission_id"}
-            )
+    @Column(nullable = false)
+    private boolean isActive = true;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "role")
+    private List<UserRole> userRoles = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "role",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
-    private Set<Permission> permissions = new HashSet<>();
+    private Set<RolePermission> rolePermissions = new HashSet<>();
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

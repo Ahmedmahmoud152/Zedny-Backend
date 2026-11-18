@@ -1,76 +1,23 @@
-
 package com.zedny.identity.profile;
 
+import com.zedny.identity.enums.Gender;
 import com.zedny.identity.user.User;
-
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import lombok.*;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AccessLevel;
-
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "profiles",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_profile_user",
-                        columnNames = "user_id"
-                )
-        }
-)
+@Table(name = "profiles")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Profile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // Personal Information
-
-    @NotBlank
-    @Size(max = 100)
-    @Column(nullable = false, length = 100)
-    private String fullName;
-
-    @Size(max = 20)
-    @Column(length = 20)
-    private String phone;
-
-    // Profile Image
-
-    @Size(max = 500)
-    @Column(length = 500)
-    private String avatarUrl;
-
-    // About
-
-    @Size(max = 1000)
-    @Column(length = 1000)
-    private String bio;
-
-    // Address
-
-    @Size(max = 255)
-    @Column(length = 255)
-    private String address;
-
-    @Size(max = 100)
-    @Column(length = 100)
-    private String city;
-
-    @Size(max = 100)
-    @Column(length = 100)
-    private String country;
-
-    // Relationship with User
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
@@ -80,21 +27,32 @@ public class Profile {
     )
     private User user;
 
-    // Timestamps
+    private LocalDate dateOfBirth;
 
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Gender gender;
 
-    private Instant updatedAt;
+    private String profileImage;
+
+    @Column(length = 500)
+    private String address;
+
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
+        createdAt = LocalDateTime.now();
         updatedAt = createdAt;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        updatedAt = LocalDateTime.now();
     }
 }

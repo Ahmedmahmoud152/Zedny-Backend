@@ -1,33 +1,60 @@
-
 package com.zedny.identity.permission;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AccessLevel;
+import com.zedny.identity.permission.RolePermission;
 
-import javax.management.relation.Role;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "permissions")
+@Table(
+        name = "permissions",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_permissions_code",
+                        columnNames = "code"
+                ),
+                @UniqueConstraint(
+                        name = "uk_permissions_name",
+                        columnNames = "name"
+                )
+        }
+)
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(length = 255)
+    @Column(nullable = false, length = 150)
+    private String code;
+
+    @Column(length = 500)
     private String description;
 
-    @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY)
-    private Set<Role> roles = new HashSet<>();
+    @Column(nullable = false, length = 100)
+    private String module;
+
+    private LocalDateTime createdAt;
+
+    @OneToMany(
+            mappedBy = "permission",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<RolePermission> rolePermissions = new HashSet<>();
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

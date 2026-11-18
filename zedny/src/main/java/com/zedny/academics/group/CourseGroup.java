@@ -3,6 +3,7 @@ package com.zedny.academics.group;
 
 import com.zedny.academics.course.CenterCourse;
 
+import com.zedny.centers.Center;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 
@@ -38,6 +39,11 @@ public class CourseGroup {
 
     @Column(nullable = false, length = 50)
     private String code;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "center_id")
+    private Center center;
+
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(

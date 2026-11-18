@@ -1,18 +1,27 @@
 package com.zedny.identity.permission;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
-@Table(name = "role_premission")
+import com.zedny.identity.role.Role;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "role_permissions")
 @Getter
 @Setter
-class RolePermission {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@NoArgsConstructor
+public class RolePermission {
 
-    @Column(nullable = false, length = 100)
-    private String fullName;
+    @EmbeddedId
+    private RolePermissionId id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("roleId")
+    @JoinColumn(name = "role_id")
+    private Role role;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("permissionId")
+    @JoinColumn(name = "permission_id")
+    private Permission permission;
 }
